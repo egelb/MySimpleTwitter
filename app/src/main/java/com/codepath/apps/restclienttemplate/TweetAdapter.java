@@ -1,9 +1,12 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.icu.text.SimpleDateFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -13,9 +16,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -43,16 +48,30 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
     // bind the values based on the position of the element
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
         // get the data according to position
         Tweet tweet = mTweets.get(position);
 
         // populate the views according to this data
         holder.tvUsername.setText(tweet.user.name);
         holder.tvBody.setText(tweet.body);
-        holder.tvTimeStamp.setText(getRelativeTimeAgo(tweet.createdAt));
+        holder.tvTimeStamp.setText(getTimeDifference(tweet.createdAt));
+        holder.tvScreenName.setText("@" + tweet.user.screenName);
 
-        Glide.with(context).load(tweet.user.profileImageUrl).into(holder.ivProfileImage);
+        Glide.with(context)
+                .load(tweet.user.profileImageUrl)
+                .asBitmap()
+                .centerCrop()
+                .into(new BitmapImageViewTarget(holder.ivProfileImage) {
+            @Override
+            protected void setResource(Bitmap resource) {
+                RoundedBitmapDrawable circularBitmapDrawable =
+                        RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                circularBitmapDrawable.setCircular(true);
+                holder.ivProfileImage.setImageDrawable(circularBitmapDrawable);
+            }
+        });
+
     }
 
     @Override
@@ -67,6 +86,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
         public TextView tvUsername;
         public TextView tvBody;
         public TextView tvTimeStamp;
+        public TextView tvScreenName;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -76,6 +96,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
             tvUsername = (TextView) itemView.findViewById(R.id.tvUserName);
             tvBody = (TextView) itemView.findViewById(R.id.tvBody);
             tvTimeStamp = (TextView) itemView.findViewById(R.id.tvTimeStamp);
+            tvScreenName = (TextView) itemView.findViewById(R.id.tvScreenName);
         }
     }
 
@@ -99,17 +120,64 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
     }
 
     private String reformattedTime(String relativeTime) {
-        String timeNum = relativeTime.split(" ")[0];
-        String timeUnit = relativeTime.split(" ")[1];
-        if (timeUnit.equals("hours")) {
-            timeNum += "h";
-        } else if (timeUnit.equals("minutes")) {
-            timeNum += "m";
+        String[] arr = relativeTime.split(" ");
+        if (arr.length >= 2) {
+            String timeNum = arr[0];
+            String timeUnit = arr[1];
+            if (timeUnit.equals("days")) {
+                timeNum = "· " + timeNum + "d";
+            } else if (timeUnit.equals("hours")) {
+                timeNum = "· " + timeNum + "h";
+            } else if (timeUnit.equals("minutes")) {
+                timeNum = "· " + timeNum + "m";
+            } else {
+                timeNum = "· " + timeNum + "s";
+            }
+            return timeNum;
         } else {
-            timeNum += "s";
+            return "· 1d";
         }
-        return timeNum;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static String getTimeDifference(String rawJsonDate) {
+        String time = "";
+        String twitterFormat = "EEE MMM dd HH:mm:ss ZZZZZ yyyy";
+        SimpleDateFormat format = new SimpleDateFormat(twitterFormat, Locale.ENGLISH);
+        format.setLenient(true);
+        try {
+            long diff = (System.currentTimeMillis() - format.parse(rawJsonDate).getTime()) / 1000;
+            if (diff < 5)
+                time = "Just now";
+            else if (diff < 60)
+                time = String.format(Locale.ENGLISH, "%ds",diff);
+            else if (diff < 60 * 60)
+                time = String.format(Locale.ENGLISH, "%dm", diff / 60);
+            else if (diff < 60 * 60 * 24)
+                time = String.format(Locale.ENGLISH, "%dh", diff / (60 * 60));
+            else if (diff < 60 * 60 * 24 * 30)
+                time = String.format(Locale.ENGLISH, "%dd", diff / (60 * 60 * 24));
+            else {
+                Calendar now = Calendar.getInstance();
+                Calendar then = Calendar.getInstance();
+                then.setTime(format.parse(rawJsonDate));
+                if (now.get(Calendar.YEAR) == then.get(Calendar.YEAR)) {
+                    time = String.valueOf(then.get(Calendar.DAY_OF_MONTH)) + " "
+                            + then.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.US);
+                } else {
+                    time = String.valueOf(then.get(Calendar.DAY_OF_MONTH)) + " "
+                            + then.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.US)
+                            + " " + String.valueOf(then.get(Calendar.YEAR) - 2000);
+                }
+            }
+        }  catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return time;
+    }
+
+
+
 
     // Clean all elements of the recycler
     public void clear() {

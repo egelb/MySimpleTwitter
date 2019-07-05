@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.codepath.apps.restclienttemplate.models.Tweet;
@@ -26,6 +27,7 @@ public class ComposeActivity extends AppCompatActivity {
 
     TextView tvCounter;
     EditText etTweet;
+    ImageButton ibClose;
 
     private final TextWatcher mTextEditorWatcher = new TextWatcher() {
 
@@ -49,6 +51,8 @@ public class ComposeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
 
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         etTweet = (EditText) findViewById(R.id.etNewTweet);
         etTweet.addTextChangedListener(mTextEditorWatcher);
 
@@ -60,6 +64,7 @@ public class ComposeActivity extends AppCompatActivity {
                 onSubmit(v);
             }
         });
+
     }
 
 
