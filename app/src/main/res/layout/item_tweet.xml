@@ -45,12 +45,13 @@
             android:layout_marginEnd="8dp"
             android:text="TextView"
             android:textColor="@android:color/black"
-            card_view:layout_constraintBottom_toBottomOf="@id/ivProfileImage"
+            android:autoLink="all"
+            android:linksClickable="true"
+            android:textColorLink="@color/twitter_blue"
             card_view:layout_constraintEnd_toEndOf="parent"
             card_view:layout_constraintHorizontal_bias="0.0"
             card_view:layout_constraintStart_toEndOf="@+id/ivProfileImage"
-            card_view:layout_constraintTop_toBottomOf="@+id/tvUserName"
-            card_view:layout_constraintVertical_bias="0.0" />
+            card_view:layout_constraintTop_toBottomOf="@+id/tvUserName" />
 
         <TextView
             android:id="@+id/tvTimeStamp"
@@ -71,7 +72,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="TextView"
-            card_view:layout_constraintBottom_toTopOf="@+id/tvBody"
             card_view:layout_constraintStart_toEndOf="@+id/tvUserName"
             card_view:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>

@@ -65,6 +65,15 @@ public class ComposeActivity extends AppCompatActivity {
             }
         });
 
+        ibClose = (ImageButton) findViewById(R.id.ibClose);
+        ibClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ComposeActivity.this, TimelineActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
 

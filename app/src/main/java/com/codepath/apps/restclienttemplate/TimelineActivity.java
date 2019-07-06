@@ -3,7 +3,6 @@ package com.codepath.apps.restclienttemplate;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,6 +33,7 @@ public class TimelineActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeContainer;
     private EndlessRecyclerViewScrollListener scrollListener;
     private long max_id;
+    MenuItem miActionProgressItem;
 
 
     @Override
@@ -62,13 +62,15 @@ public class TimelineActivity extends AppCompatActivity {
                 android.R.color.holo_red_light);
 
         FloatingActionButton fab = findViewById(R.id.fab);
+        fab.show();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(TimelineActivity.this, ComposeActivity.class);
+                startActivityForResult(intent, REQUEST_CODE);
             }
         });
+
 
         client = (TwitterClient) TwitterApp.getRestClient(this); // context not in video  (EG)
 
@@ -94,7 +96,6 @@ public class TimelineActivity extends AppCompatActivity {
         rvTweets.setAdapter(tweetAdapter);
         rvTweets.addOnScrollListener(scrollListener);
 
-        findViewById(R.id.fab).bringToFront();
 
         populateTimeline();
     }
@@ -119,6 +120,24 @@ public class TimelineActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // Store instance of the menu item containing progress
+        miActionProgressItem = menu.findItem(R.id.miActionProgress);
+
+        // Return to finish
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public void showProgressBar() {
+        // Show progress item
+        miActionProgressItem.setVisible(true);
+    }
+
+    public void hideProgressBar() {
+        // Hide progress item
+        miActionProgressItem.setVisible(false);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -128,19 +147,6 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     private final int REQUEST_CODE = 20;
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.miCompose:
-                Intent intent = new Intent(this, ComposeActivity.class);
-                startActivityForResult(intent, REQUEST_CODE);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
